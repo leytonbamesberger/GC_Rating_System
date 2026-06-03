@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown, Plus, Search, Upload, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Plus, Search, Upload, X, Settings, FileDown } from 'lucide-react';
 import { supabase, type GeneralContractor, type Rating } from '../lib/supabase';
+import { type BidThresholds, DEFAULT_THRESHOLDS, totalBidsToScore, fetchThresholds } from '../lib/bidThresholds';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import AddGCModal from '../components/AddGCModal';
+import ThresholdsModal from '../components/ThresholdsModal';
 
 type Props = {
   onBack: () => void;
@@ -15,8 +17,6 @@ type Props = {
 export type GCRow = {
   id: string;
   name: string;
-  award_probability: number | null;
-  hit_rate_pct_score: number | null;
   hit_rate_dollar_score: number | null;
   payment_timeline: number;
   co_approval_timeline: number;
@@ -56,7 +56,6 @@ const COLUMNS: { key: SortKey; label: string; short: string }[] = [
   { key: 'relationship', label: 'PM Relation', short: 'PM Relation' },
   { key: 'est_relationship', label: 'Est Relation', short: 'Est Relation' },
   { key: 'total_bids', label: 'Total Bids', short: 'Total Bids' },
-  { key: 'hit_rate_pct_score', label: 'Hit Rate (%)', short: 'Hit Rate (%)' },
   { key: 'hit_rate_dollar_score', label: 'Hit Rate ($)', short: 'Hit Rate ($)' },
   { key: 'rating_count', label: '# of Ratings', short: '# Ratings' },
 ];
@@ -74,15 +73,6 @@ function fmt(n: number): string {
 function hitRateToScore(ratio: number): number {
   const raw = ratio * 5;
   return Math.min(5, Math.max(1, raw));
-}
-
-// Convert total bids submitted dollar amount to a 1–5 score
-function totalBidsToScore(dollars: number): number {
-  if (dollars <= 0) return 1;
-  if (dollars < 1_000_000) return 2;
-  if (dollars < 5_000_000) return 3;
-  if (dollars < 10_000_000) return 4;
-  return 5;
 }
 
 function gcMatchScore(name: string, query: string): number {
@@ -126,20 +116,16 @@ function ScoreCell({ value, highlight }: { value: number; highlight?: boolean })
   );
 }
 
-export function buildGCRow(gc: GeneralContractor, gcRatings: Rating[]): GCRow {
-  const hit_rate_pct_score =
-    gc.award_probability != null ? hitRateToScore(gc.award_probability) : null;
+export function buildGCRow(gc: GeneralContractor, gcRatings: Rating[], thresholds: BidThresholds = DEFAULT_THRESHOLDS): GCRow {
   const hit_rate_dollar_score =
     gc.hit_rate_dollar != null ? hitRateToScore(gc.hit_rate_dollar) : null;
   const total_bids =
-    gc.total_bids_submitted_raw != null ? totalBidsToScore(gc.total_bids_submitted_raw) : null;
+    gc.total_bids_submitted_raw != null ? totalBidsToScore(gc.total_bids_submitted_raw, thresholds) : null;
 
   if (gcRatings.length === 0) {
     return {
       id: gc.id,
       name: gc.name,
-      award_probability: gc.award_probability,
-      hit_rate_pct_score,
       hit_rate_dollar_score,
       payment_timeline: 0,
       co_approval_timeline: 0,
@@ -170,14 +156,12 @@ export function buildGCRow(gc: GeneralContractor, gcRatings: Rating[]): GCRow {
   };
 
   const catValues = Object.values(categoryAvgs);
-  const extraScores = [hit_rate_pct_score, hit_rate_dollar_score, total_bids].filter((v): v is number => v != null);
+  const extraScores = [hit_rate_dollar_score, total_bids].filter((v): v is number => v != null);
   const overall_score = avg([...catValues, ...extraScores]);
 
   return {
     id: gc.id,
     name: gc.name,
-    award_probability: gc.award_probability,
-    hit_rate_pct_score,
     hit_rate_dollar_score,
     ...categoryAvgs,
     est_relationship: gc.est_relationship ?? null,
@@ -195,6 +179,8 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
   const [sortKey, setSortKey] = useState<SortKey>('overall_score');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showThresholdsModal, setShowThresholdsModal] = useState(false);
+  const [thresholds, setThresholds] = useState<BidThresholds>(DEFAULT_THRESHOLDS);
   const [pendingGCName, setPendingGCName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -270,15 +256,17 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
   async function fetchData() {
     setLoading(true);
     setError('');
-    const [gcRes, ratingsRes] = await Promise.all([
+    const [gcRes, ratingsRes, loadedThresholds] = await Promise.all([
       supabase.from('general_contractors').select('*'),
       supabase.from('ratings').select('*').order('created_at', { ascending: false }),
+      fetchThresholds(),
     ]);
     if (gcRes.error || ratingsRes.error) {
       setError('Failed to load dashboard data.');
       setLoading(false);
       return;
     }
+    setThresholds(loadedThresholds);
     const gcs = (gcRes.data ?? []) as GeneralContractor[];
     const ratings = (ratingsRes.data ?? []) as Rating[];
 
@@ -293,7 +281,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
     const built: GCRow[] = [];
     for (const gc of gcs) {
       const gcRatings = ratingsByGC.get(gc.id) ?? [];
-      built.push(buildGCRow(gc, gcRatings));
+      built.push(buildGCRow(gc, gcRatings, loadedThresholds));
     }
 
     setRows(built);
@@ -305,7 +293,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
     setPendingGCName('');
     setRows((prev) => {
       if (prev.some((r) => r.id === gc.id)) return prev;
-      return [...prev, buildGCRow(gc, [])];
+      return [...prev, buildGCRow(gc, [], thresholds)];
     });
     setSearchQuery(gc.name);
     setSelectedId(gc.id);
@@ -383,6 +371,27 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                 </p>
               </div>
             )}
+            <button
+              onClick={() => setShowThresholdsModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white text-sm font-medium rounded-lg transition-colors"
+              title="Configure Total Bids scoring thresholds"
+            >
+              <Settings className="w-4 h-4" />
+              Thresholds
+            </button>
+            <button
+              onClick={() => {
+                import('../lib/generatePeriodicReport').then(({ generatePeriodicReport }) => {
+                  generatePeriodicReport(rows);
+                });
+              }}
+              disabled={rows.filter((r) => r.rating_count > 0).length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-sm font-medium rounded-lg transition-colors"
+              title="Download Periodic Report PDF"
+            >
+              <FileDown className="w-4 h-4" />
+              Periodic Report
+            </button>
             <button
               onClick={onUploadCSV}
               className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors"
@@ -583,12 +592,6 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                               ? <ScoreCell value={row.total_bids} />
                               : <span className="text-white/20">—</span>}
                           </td>
-                          {/* Hit Rate (%) */}
-                          <td className="px-4 py-3 text-center">
-                            {row.hit_rate_pct_score != null
-                              ? <ScoreCell value={row.hit_rate_pct_score} />
-                              : <span className="text-white/20">—</span>}
-                          </td>
                           {/* Hit Rate ($) */}
                           <td className="px-4 py-3 text-center">
                             {row.hit_rate_dollar_score != null
@@ -614,6 +617,20 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
           initialName={pendingGCName}
           onClose={() => { setShowAddModal(false); setPendingGCName(''); }}
           onSaved={handleGCAdded}
+        />
+      )}
+
+      {showThresholdsModal && (
+        <ThresholdsModal
+          onClose={() => setShowThresholdsModal(false)}
+          onSaved={(newThresholds) => {
+            setThresholds(newThresholds);
+            setRows((prev) => prev.map((row) => {
+              // We don't have raw dollar data in GCRow, so we need to re-fetch
+              return row;
+            }));
+            fetchData();
+          }}
         />
       )}
     </div>
