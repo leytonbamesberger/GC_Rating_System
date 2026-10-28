@@ -4,9 +4,8 @@ import { InteractionStatus } from '@azure/msal-browser';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
 import LoginScreen from './screens/LoginScreen';
-import LandingScreen from './screens/LandingScreen';
+import HomeScreen from './screens/HomeScreen';
 import PMNameScreen from './screens/PMNameScreen';
-import PMHomeScreen from './screens/PMHomeScreen';
 import AddReportFlow from './screens/AddReportFlow';
 import GCDashboard from './screens/GCDashboard';
 import GCDetailPage from './screens/GCDetailPage';
@@ -15,10 +14,9 @@ import { clearSupabaseToken, supabase, type ProjectManager } from './lib/supabas
 import { accountOid } from './lib/msal';
 
 type Screen =
-  | 'landing'
+  | 'home'
   | 'pm-name'
-  | 'pm-home'
-  | 'pm-add-report'
+  | 'add-report'
   | 'gc-dashboard'
   | 'gc-detail'
   | 'csv-upload';
@@ -28,14 +26,14 @@ export default function App() {
   const isAuthenticated = useIsAuthenticated();
   const account = accounts[0] ?? null;
 
-  const [screen, setScreen] = useState<Screen>('landing');
+  const [screen, setScreen] = useState<Screen>('home');
   // The signed-in user's own project manager row, linked by email at sign-in (gc_link_pm); null if
-  // there was no match and they have not created one yet.
+  // there was no match. Only needed to file a rating, so a person without one (an estimator who only
+  // views the dashboard) is asked for their name the first time they add a report.
   const [currentPM, setCurrentPM] = useState<ProjectManager | null>(null);
   const [pmLoading, setPMLoading] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [selectedGCId, setSelectedGCId] = useState<string | null>(null);
-  const [dashboardBack, setDashboardBack] = useState<'landing' | 'pm-home'>('landing');
 
   const oid = account ? accountOid(account) : null;
 
@@ -57,19 +55,19 @@ export default function App() {
     };
   }, [oid]);
 
-  function handleSelectPM() {
-    setScreen(currentPM ? 'pm-home' : 'pm-name');
+  function handleAddReport() {
+    setConfirmationMessage('');
+    setScreen(currentPM ? 'add-report' : 'pm-name');
   }
 
   function handlePMCreated(pm: ProjectManager) {
     setCurrentPM(pm);
-    setConfirmationMessage('');
-    setScreen('pm-home');
+    setScreen('add-report');
   }
 
   function handleReportComplete(gcName: string) {
     setConfirmationMessage(`Rating submitted for ${gcName}. Thank you.`);
-    setScreen('pm-home');
+    setScreen('home');
   }
 
   const headerSubtitle =
@@ -78,20 +76,20 @@ export default function App() {
     'GC Rating System';
 
   function handleHome() {
-    setScreen('landing');
+    setScreen('home');
     setConfirmationMessage('');
   }
 
   function handleSignOut() {
     clearSupabaseToken();
     setCurrentPM(null);
-    setScreen('landing');
+    setScreen('home');
     instance.logoutRedirect();
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-navy-900 text-white">
+      <div className="min-h-screen bg-white text-legacy-blue-dark">
         <Header subtitle="GC Rating System" />
         {inProgress !== InteractionStatus.None ? <LoadingSpinner /> : <LoginScreen />}
       </div>
@@ -99,7 +97,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-navy-900 text-white">
+    <div className="min-h-screen bg-white text-legacy-blue-dark">
       <Header
         subtitle={headerSubtitle}
         onHome={handleHome}
@@ -111,10 +109,12 @@ export default function App() {
         <LoadingSpinner />
       ) : (
         <>
-          {screen === 'landing' && (
-            <LandingScreen
-              onSelectPM={handleSelectPM}
-              onSelectEstimator={() => { setDashboardBack('landing'); setScreen('gc-dashboard'); }}
+          {screen === 'home' && (
+            <HomeScreen
+              name={currentPM?.name ?? account?.name ?? account?.username ?? ''}
+              confirmationMessage={confirmationMessage}
+              onAddReport={handleAddReport}
+              onViewDashboard={() => setScreen('gc-dashboard')}
             />
           )}
 
@@ -122,33 +122,23 @@ export default function App() {
             <PMNameScreen
               account={account}
               onCreated={handlePMCreated}
-              onBack={() => setScreen('landing')}
+              onBack={() => setScreen('home')}
             />
           )}
 
-          {screen === 'pm-home' && currentPM && (
-            <PMHomeScreen
-              pm={currentPM}
-              confirmationMessage={confirmationMessage}
-              onAddReport={() => { setConfirmationMessage(''); setScreen('pm-add-report'); }}
-              onViewDashboard={() => { setDashboardBack('pm-home'); setScreen('gc-dashboard'); }}
-              onBack={() => setScreen('landing')}
-            />
-          )}
-
-          {screen === 'pm-add-report' && currentPM && (
+          {screen === 'add-report' && currentPM && (
             <AddReportFlow
               pm={currentPM}
               onComplete={handleReportComplete}
-              onBack={() => setScreen('pm-home')}
+              onBack={() => setScreen('home')}
               onHome={handleHome}
             />
           )}
 
           {screen === 'gc-dashboard' && (
             <GCDashboard
-              onBack={() => setScreen(dashboardBack)}
-              backLabel={dashboardBack === 'pm-home' ? '← Back to Home' : '← Back'}
+              onBack={() => setScreen('home')}
+              backLabel="← Back to Home"
               onSelectGC={(id) => { setSelectedGCId(id); setScreen('gc-detail'); }}
               onUploadCSV={() => setScreen('csv-upload')}
             />

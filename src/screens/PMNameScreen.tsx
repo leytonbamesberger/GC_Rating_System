@@ -44,11 +44,11 @@ export default function PMNameScreen({ account, onCreated, onBack }: Props) {
   return (
     <div className="min-h-[calc(100vh-80px)] px-6 py-10">
       <div className="max-w-md mx-auto">
-        <button onClick={onBack} className="text-white/40 hover:text-white text-sm mb-6 flex items-center gap-1 transition-colors">
+        <button onClick={onBack} className="text-legacy-blue-light hover:text-legacy-blue-dark text-sm mb-6 flex items-center gap-1 transition-colors">
           ← Back
         </button>
-        <h2 className="text-2xl font-bold text-white mb-1">Confirm Your Name</h2>
-        <p className="text-white/40 text-sm mb-8">
+        <h2 className="text-2xl font-bold text-legacy-blue-dark mb-1">Confirm Your Name</h2>
+        <p className="text-legacy-blue-light text-sm mb-8">
           This is the name your ratings will be filed under. You only need to do this once.
         </p>
 
@@ -61,12 +61,12 @@ export default function PMNameScreen({ account, onCreated, onBack }: Props) {
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           placeholder="Full name"
           autoFocus
-          className="w-full bg-white/5 border border-white/10 rounded-md px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-brand-500/60 mb-3"
+          className="w-full bg-white border border-legacy-blue-light/25 rounded-md px-4 py-2.5 text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none focus:border-legacy-blue-dark mb-3"
         />
         <button
           onClick={handleSave}
           disabled={saving || !name.trim()}
-          className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-md py-2.5 text-sm transition-colors"
+          className="w-full bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-full py-2.5 text-sm transition-colors"
         >
           {saving ? 'Saving...' : 'Save & Continue'}
         </button>

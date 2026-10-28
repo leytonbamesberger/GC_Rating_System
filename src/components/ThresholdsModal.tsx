@@ -35,22 +35,22 @@ function DollarInput({
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-2 w-28 flex-shrink-0">
         <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0
-          ${score >= 4 ? 'bg-green-500/20 text-green-400' :
-            score === 3 ? 'bg-yellow-500/20 text-yellow-400' :
-            'bg-red-500/20 text-red-400'}`}
+          ${score >= 4 ? 'bg-emerald-600/15 text-emerald-700' :
+            score === 3 ? 'bg-amber-500/15 text-amber-700' :
+            'bg-legacy-red/10 text-legacy-red'}`}
         >
           {score}
         </div>
-        <span className="text-white/60 text-sm">{label}</span>
+        <span className="text-legacy-blue-dark text-sm">{label}</span>
       </div>
       <div className="flex-1 relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm pointer-events-none">$</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-legacy-blue-light text-sm pointer-events-none">$</span>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-white/5 border border-white/10 rounded-lg pl-6 pr-3 py-2 text-white text-sm focus:outline-none focus:border-brand-500/60 transition-colors placeholder-white/20"
+          className="w-full bg-white border border-legacy-blue-light/30 rounded-lg pl-6 pr-3 py-2 text-legacy-blue-dark text-sm focus:outline-none focus:border-legacy-blue-dark transition-colors placeholder-legacy-blue-light/50"
         />
       </div>
     </div>
@@ -90,22 +90,23 @@ export default function ThresholdsModal({ onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-[#1a2d45] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md">
+    <div className="fixed inset-0 bg-legacy-blue-dark/50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="bg-white border border-legacy-blue-light/20 rounded-xl shadow-xl w-full max-w-md text-legacy-blue-dark">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-legacy-blue-light/15">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-500/15 flex items-center justify-center">
-              <Settings className="w-4 h-4 text-brand-400" />
+            <div className="w-8 h-8 rounded-lg bg-legacy-blue-light/10 flex items-center justify-center">
+              <Settings className="w-4 h-4 text-legacy-blue-dark" />
             </div>
             <div>
-              <h3 className="text-white font-semibold text-base">Total Bids Thresholds</h3>
-              <p className="text-white/40 text-xs mt-0.5">Minimum dollar amount to earn each score</p>
+              <h3 className="text-legacy-blue-dark font-semibold text-base">Total Bids Thresholds</h3>
+              <p className="text-legacy-blue-light text-xs mt-0.5">Minimum dollar amount to earn each score</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-white/30 hover:text-white transition-colors"
+            className="text-legacy-blue-light hover:text-legacy-blue-dark transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -115,13 +116,13 @@ export default function ThresholdsModal({ onClose, onSaved }: Props) {
         <div className="px-6 py-5">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-legacy-blue-dark border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="mb-4 bg-white/[0.03] rounded-xl px-4 py-3">
-                <p className="text-white/40 text-xs leading-relaxed">
-                  Score <span className="text-red-400 font-medium">1</span> is assigned when Total Bids Submitted is $0. Set the minimum dollar thresholds for scores 2–5 below.
+              <div className="mb-4 bg-legacy-blue-light/5 rounded-lg px-4 py-3">
+                <p className="text-legacy-blue-light text-xs leading-relaxed">
+                  Score <span className="text-legacy-red font-medium">1</span> is assigned when Total Bids Submitted is $0. Set the minimum dollar thresholds for scores 2–5 below.
                 </p>
               </div>
               <DollarInput label="Score 2" score={2} value={tier2} onChange={setTier2} placeholder="e.g. 1" />
@@ -133,17 +134,17 @@ export default function ThresholdsModal({ onClose, onSaved }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-white/10 flex justify-end gap-3">
+        <div className="px-6 py-4 border-t border-legacy-blue-light/15 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-white/50 hover:text-white transition-colors"
+            className="rounded-full px-4 py-2 text-sm text-legacy-blue-dark hover:bg-legacy-blue-light/5 transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={loading || saving}
-            className="flex items-center gap-2 px-5 py-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+            className="flex items-center gap-2 rounded-full px-5 py-2 bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 disabled:opacity-50 text-white text-sm font-medium transition"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Saving...' : 'Save'}

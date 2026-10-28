@@ -18,15 +18,16 @@ export type GCRow = {
   id: string;
   name: string;
   hit_rate_dollar_score: number | null;
-  payment_timeline: number;
-  co_approval_timeline: number;
-  co_negotiations: number;
-  contract_terms: number;
-  conflict_mitigation: number;
-  schedule_trade_stacking: number;
-  schedule_accuracy: number;
-  site_control: number;
-  relationship: number;
+  // A category average is null when every report marked it N/A.
+  payment_timeline: number | null;
+  co_approval_timeline: number | null;
+  co_negotiations: number | null;
+  contract_terms: number | null;
+  conflict_mitigation: number | null;
+  schedule_trade_stacking: number | null;
+  schedule_accuracy: number | null;
+  site_control: number | null;
+  relationship: number | null;
   safety: number | null;
   est_relationship: number | null;
   total_bids: number | null;
@@ -115,8 +116,8 @@ function gcMatchScore(name: string, query: string): number {
 
 function ScoreCell({ value, highlight }: { value: number; highlight?: boolean }) {
   const color =
-    value >= 3.5 ? 'text-green-400' :
-    value >= 2 ? 'text-yellow-400' : 'text-red-400';
+    value >= 3.5 ? 'text-emerald-700' :
+    value >= 2 ? 'text-amber-600' : 'text-legacy-red';
   return (
     <span className={`${color} font-medium tabular-nums ${highlight ? 'font-bold' : ''}`}>
       {fmt(value)}
@@ -152,33 +153,25 @@ export function buildGCRow(gc: GeneralContractor, gcRatings: Rating[], threshold
     };
   }
 
+  // N/A answers are stored as null and left out, so they never pull a category average (or the
+  // overall score) up or down. A category that was N/A on every report has no average at all.
   const categoryAvgs = {
-    payment_timeline: avg(gcRatings.map((r) => r.payment_timeline)),
-    co_approval_timeline: avg(gcRatings.map((r) => r.co_approval_timeline)),
-    co_negotiations: avg(gcRatings.map((r) => r.co_negotiations)),
-    contract_terms: avg(gcRatings.map((r) => r.contract_terms)),
-    conflict_mitigation: avg(gcRatings.map((r) => r.conflict_mitigation)),
-    schedule_trade_stacking: avg(gcRatings.map((r) => r.schedule_trade_stacking)),
-    schedule_accuracy: avg(gcRatings.map((r) => r.schedule_accuracy)),
-    site_control: avg(gcRatings.map((r) => r.site_control)),
-    relationship: avg(gcRatings.map((r) => r.relationship)),
+    payment_timeline: avgNotNull(gcRatings.map((r) => r.payment_timeline)),
+    co_approval_timeline: avgNotNull(gcRatings.map((r) => r.co_approval_timeline)),
+    co_negotiations: avgNotNull(gcRatings.map((r) => r.co_negotiations)),
+    contract_terms: avgNotNull(gcRatings.map((r) => r.contract_terms)),
+    conflict_mitigation: avgNotNull(gcRatings.map((r) => r.conflict_mitigation)),
+    schedule_trade_stacking: avgNotNull(gcRatings.map((r) => r.schedule_trade_stacking)),
+    schedule_accuracy: avgNotNull(gcRatings.map((r) => r.schedule_accuracy)),
+    site_control: avgNotNull(gcRatings.map((r) => r.site_control)),
+    relationship: avgNotNull(gcRatings.map((r) => r.relationship)),
     safety: avgNotNull(gcRatings.map((r) => r.safety)),
   };
 
-  const catValues = [
-    categoryAvgs.payment_timeline,
-    categoryAvgs.co_approval_timeline,
-    categoryAvgs.co_negotiations,
-    categoryAvgs.contract_terms,
-    categoryAvgs.conflict_mitigation,
-    categoryAvgs.schedule_trade_stacking,
-    categoryAvgs.schedule_accuracy,
-    categoryAvgs.site_control,
-    categoryAvgs.relationship,
-    ...(categoryAvgs.safety != null ? [categoryAvgs.safety] : []),
-  ];
+  const catValues = Object.values(categoryAvgs).filter((v): v is number => v != null);
   const extraScores = [hit_rate_dollar_score, total_bids].filter((v): v is number => v != null);
-  const overall_score = avg([...catValues, ...extraScores]);
+  const scored = [...catValues, ...extraScores];
+  const overall_score = scored.length > 0 ? avg(scored) : null;
 
   return {
     id: gc.id,
@@ -361,30 +354,30 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
   }, [rows]);
 
   function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 text-white/20" />;
+    if (sortKey !== col) return <ChevronsUpDown className="w-3 h-3 text-legacy-blue-light/30" />;
     return sortDir === 'asc'
-      ? <ChevronUp className="w-3 h-3 text-brand-500" />
-      : <ChevronDown className="w-3 h-3 text-brand-500" />;
+      ? <ChevronUp className="w-3 h-3 text-legacy-blue-dark" />
+      : <ChevronDown className="w-3 h-3 text-legacy-blue-dark" />;
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] px-4 py-8">
+    <div className="min-h-[calc(100vh-64px)] px-6 py-8">
       <div className="max-w-[1400px] mx-auto">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <button onClick={onBack} className="text-white/40 hover:text-white text-sm flex items-center gap-1 transition-colors mb-3">
+            <button onClick={onBack} className="text-legacy-blue-light hover:text-legacy-blue-dark text-sm flex items-center gap-1 transition-colors mb-3">
               {backLabel}
             </button>
-            <h2 className="text-2xl font-bold text-white">GC Performance Dashboard</h2>
-            <p className="text-white/40 text-sm mt-1">
+            <h2 className="text-xl font-semibold text-legacy-blue-dark">GC Performance Dashboard</h2>
+            <p className="text-legacy-blue-light text-sm mt-1">
               {rows.length} contractor{rows.length !== 1 ? 's' : ''}
             </p>
           </div>
           <div className="flex items-center gap-4 flex-wrap">
             {lastUpdated && (
               <div className="text-right">
-                <p className="text-white/30 text-xs uppercase tracking-wider font-medium">Last Updated</p>
-                <p className="text-white/50 text-sm mt-0.5">
+                <p className="text-legacy-blue-light text-xs uppercase tracking-wide font-medium">Last Updated</p>
+                <p className="text-legacy-blue-dark text-sm mt-0.5">
                   {new Date(lastUpdated).toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric', year: 'numeric',
                     hour: 'numeric', minute: '2-digit',
@@ -394,7 +387,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
             )}
             <button
               onClick={() => setShowThresholdsModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-full border border-legacy-blue-light/30 px-4 py-2 text-sm font-medium text-legacy-blue-dark transition hover:bg-legacy-blue-light/5"
               title="Configure Total Bids scoring thresholds"
             >
               <Settings className="w-4 h-4" />
@@ -407,7 +400,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                 });
               }}
               disabled={rows.filter((r) => r.rating_count > 0).length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-full border border-legacy-blue-light/30 px-4 py-2 text-sm font-medium text-legacy-blue-dark transition hover:bg-legacy-blue-light/5 disabled:cursor-not-allowed disabled:opacity-40"
               title="Download Periodic Report PDF"
             >
               <FileDown className="w-4 h-4" />
@@ -415,7 +408,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
             </button>
             <button
               onClick={onUploadCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-full bg-legacy-blue-dark px-4 py-2 text-sm font-medium text-white transition hover:bg-legacy-blue-dark/90"
             >
               <Upload className="w-4 h-4" />
               Upload CSV
@@ -428,8 +421,8 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
 
         {!loading && !error && (
           <div ref={searchRef} className="relative mb-5">
-            <div className={`flex items-center gap-3 bg-white/5 border rounded-xl px-4 py-3 transition-colors ${searchFocused ? 'border-brand-500/60' : 'border-white/10'}`}>
-              <Search className="w-4 h-4 text-white/30 flex-shrink-0" />
+            <div className={`flex items-center gap-3 bg-white border rounded-lg px-4 py-2.5 transition-colors ${searchFocused ? 'border-legacy-blue-dark' : 'border-legacy-blue-light/30'}`}>
+              <Search className="w-4 h-4 text-legacy-blue-light flex-shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
@@ -437,12 +430,12 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                 onChange={(e) => { setSearchQuery(e.target.value); setSelectedId(null); }}
                 onFocus={() => setSearchFocused(true)}
                 placeholder="Search or add a general contractor..."
-                className="flex-1 bg-transparent text-white placeholder-white/20 text-sm focus:outline-none"
+                className="flex-1 bg-transparent text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none"
               />
               {searchQuery && (
                 <button
                   onClick={() => { setSearchQuery(''); setSelectedId(null); inputRef.current?.focus(); }}
-                  className="text-white/30 hover:text-white transition-colors flex-shrink-0"
+                  className="text-legacy-blue-light hover:text-legacy-blue-dark transition-colors flex-shrink-0"
                   aria-label="Clear search"
                 >
                   <X className="w-4 h-4" />
@@ -451,7 +444,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
             </div>
 
             {searchFocused && searchQuery.trim() && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a2d45] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-20">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-legacy-blue-light/25 rounded-lg overflow-hidden shadow-lg z-20">
                 {suggestions.map((s) => (
                   <button
                     key={s.id}
@@ -461,15 +454,15 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                       setSelectedId(s.id);
                       setSearchFocused(false);
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex items-center gap-3"
+                    className="w-full text-left px-4 py-3 hover:bg-legacy-blue-light/5 transition-colors border-b border-legacy-blue-light/10 last:border-0 flex items-center gap-3"
                   >
-                    <Search className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
-                    <span className="text-white text-sm">{s.name}</span>
+                    <Search className="w-3.5 h-3.5 text-legacy-blue-light/50 flex-shrink-0" />
+                    <span className="text-legacy-blue-dark text-sm">{s.name}</span>
                   </button>
                 ))}
                 {suggestions.length === 0 && (
-                  <div className="px-4 py-3 border-b border-white/5">
-                    <p className="text-white/30 text-sm">No contractors match "{searchQuery}"</p>
+                  <div className="px-4 py-3 border-b border-legacy-blue-light/10">
+                    <p className="text-legacy-blue-light text-sm">No contractors match "{searchQuery}"</p>
                   </div>
                 )}
                 <button
@@ -479,10 +472,10 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                     setShowAddModal(true);
                     setSearchFocused(false);
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-brand-500/10 transition-colors flex items-center gap-3"
+                  className="w-full text-left px-4 py-3 hover:bg-legacy-blue-light/5 transition-colors flex items-center gap-3"
                 >
-                  <Plus className="w-3.5 h-3.5 text-brand-400 flex-shrink-0" />
-                  <span className="text-brand-400 text-sm">Add new GC: "{searchQuery.trim()}"</span>
+                  <Plus className="w-3.5 h-3.5 text-legacy-blue-dark flex-shrink-0" />
+                  <span className="text-legacy-blue-dark text-sm font-medium">Add new GC: "{searchQuery.trim()}"</span>
                 </button>
               </div>
             )}
@@ -490,7 +483,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
         )}
 
         {!loading && !error && rows.length === 0 && (
-          <div className="text-center py-20 text-white/30">
+          <div className="text-center py-20 text-legacy-blue-light">
             <p className="text-lg">No contractors yet.</p>
             <p className="text-sm mt-2">Search above to add your first GC.</p>
           </div>
@@ -500,13 +493,13 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
           <>
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 bg-brand-500 rounded-full" />
-                <p className="text-white/40 text-xs">Top 5 contractors highlighted · Click a row to view details</p>
+                <div className="w-1 h-4 bg-legacy-blue-dark rounded-full" />
+                <p className="text-legacy-blue-light text-xs">Top 5 contractors highlighted · Click a row to view details</p>
               </div>
               {selectedId && (
                 <button
                   onClick={() => { setSearchQuery(''); setSelectedId(null); }}
-                  className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-legacy-blue-dark underline hover:text-legacy-blue-light transition-colors"
                 >
                   <X className="w-3 h-3" />
                   Show all
@@ -515,12 +508,11 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
             </div>
 
             {/* Outer border wrapper */}
-            <div className="rounded-xl border border-white/10 overflow-hidden">
+            <div className="rounded-lg border border-legacy-blue-light/25 overflow-hidden">
               {/* Custom horizontal scrollbar — sits between header and body */}
               <div
                 ref={scrollbarRef}
-                className="overflow-x-scroll custom-scrollbar bg-white/[0.02] border-b border-white/10"
-                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(200,64,26,0.5) rgba(255,255,255,0.04)' }}
+                className="overflow-x-scroll custom-scrollbar bg-legacy-tint border-b border-legacy-blue-light/20"
               >
                 <div ref={scrollbarInnerRef} style={{ height: 1 }} />
               </div>
@@ -533,7 +525,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
               >
                 <table className="w-full text-sm min-w-[1100px]">
                   <thead className="sticky top-0 z-20">
-                    <tr className="bg-[#1e2f45] border-b border-white/10">
+                    <tr className="bg-legacy-tint border-b border-legacy-blue-light/20">
                       {COLUMNS.map((col) => {
                         const isPrimary = col.key === 'name' || col.key === 'overall_score';
                         const isName = col.key === 'name';
@@ -543,8 +535,8 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                             key={col.key}
                             onClick={() => handleSort(col.key)}
                             style={isName ? { left: 0 } : isOverall ? { left: '10rem' } : undefined}
-                            className={`px-4 py-3 font-medium text-xs uppercase tracking-wider cursor-pointer hover:text-white/70 transition-colors select-none whitespace-nowrap
-                              ${isPrimary ? 'sticky z-10 text-white/70 bg-[#1e2f45] border-r border-white/10 shadow-[2px_0_8px_rgba(0,0,0,0.3)]' : 'text-white/40'}
+                            className={`px-4 py-3 font-medium text-xs uppercase tracking-wide cursor-pointer hover:text-legacy-blue-dark transition-colors select-none whitespace-nowrap
+                              ${isPrimary ? 'sticky z-10 text-legacy-blue-dark bg-legacy-tint border-r border-legacy-blue-light/20' : 'text-legacy-blue-light'}
                               ${isName ? 'text-left w-40 min-w-[10rem]' : 'text-center'}`}
                           >
                             <div className={`flex items-center gap-1.5 ${isName ? '' : 'justify-center'}`}>
@@ -556,43 +548,44 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                       })}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-legacy-blue-light/15">
                     {sorted.map((row) => {
                       const isTop5 = top5Ids.includes(row.id);
-                      const rowBg = isTop5 ? '#1f2e42' : '#192333';
+                      // Sticky cells must be opaque, so they use the solid tint instead of the row's translucent one.
+                      const stickyBg = isTop5 ? 'bg-legacy-tint' : 'bg-white group-hover:bg-legacy-tint';
                       return (
                         <tr
                           key={row.id}
                           onClick={() => onSelectGC(row.id)}
-                          className={`cursor-pointer transition-colors align-middle ${
+                          className={`group cursor-pointer transition-colors align-middle hover:bg-legacy-tint ${
                             isTop5
-                              ? 'border-l-2 border-brand-500 bg-brand-500/5 hover:bg-brand-500/15'
-                              : 'border-l-2 border-transparent hover:bg-white/5'
+                              ? 'border-l-2 border-legacy-blue-dark bg-legacy-tint'
+                              : 'border-l-2 border-transparent'
                           }`}
                         >
                           <td
-                            className="sticky z-10 px-4 py-3 w-40 min-w-[10rem] border-r border-white/[0.06] shadow-[2px_0_8px_rgba(0,0,0,0.25)]"
-                            style={{ left: 0, backgroundColor: rowBg }}
+                            className={`sticky z-10 px-4 py-3 w-40 min-w-[10rem] border-r border-legacy-blue-light/15 transition-colors ${stickyBg}`}
+                            style={{ left: 0 }}
                           >
                             <div className="flex flex-col gap-0.5">
                               <span
-                                className={`font-semibold text-sm leading-snug ${isTop5 ? 'text-white' : 'text-white/90'}`}
+                                className="font-semibold text-sm leading-snug text-legacy-blue-dark"
                                 title={row.name}
                               >
                                 {row.name}
                               </span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider self-start ${isTop5 ? 'bg-brand-500/20 text-brand-400' : 'invisible'}`}>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium uppercase tracking-wide self-start ${isTop5 ? 'bg-legacy-blue-light/10 text-legacy-blue-light' : 'invisible'}`}>
                                 Top 5
                               </span>
                             </div>
                           </td>
                           <td
-                            className="sticky z-10 px-4 py-3 text-center border-r border-white/[0.06] shadow-[2px_0_8px_rgba(0,0,0,0.25)]"
-                            style={{ left: '10rem', backgroundColor: rowBg }}
+                            className={`sticky z-10 px-4 py-3 text-center border-r border-legacy-blue-light/15 transition-colors ${stickyBg}`}
+                            style={{ left: '10rem' }}
                           >
-                            {row.rating_count > 0
-                              ? <ScoreCell value={row.overall_score!} highlight={isTop5} />
-                              : <span className="text-white/20">—</span>}
+                            {row.rating_count > 0 && row.overall_score != null
+                              ? <ScoreCell value={row.overall_score} highlight={isTop5} />
+                              : <span className="text-legacy-blue-light/40">—</span>}
                           </td>
                           {SCORE_COLUMNS.map((col) => {
                             const val = row[col] as number | null;
@@ -600,7 +593,7 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                               <td key={col} className="px-4 py-3 text-center">
                                 {val != null
                                   ? <ScoreCell value={val} />
-                                  : <span className="text-white/20">—</span>}
+                                  : <span className="text-legacy-blue-light/40">—</span>}
                               </td>
                             );
                           })}
@@ -608,22 +601,22 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
                           <td className="px-4 py-3 text-center">
                             {row.est_relationship != null
                               ? <ScoreCell value={row.est_relationship} />
-                              : <span className="text-white/20">—</span>}
+                              : <span className="text-legacy-blue-light/40">—</span>}
                           </td>
                           {/* Total Bids */}
                           <td className="px-4 py-3 text-center">
                             {row.total_bids != null
                               ? <ScoreCell value={row.total_bids} />
-                              : <span className="text-white/20">—</span>}
+                              : <span className="text-legacy-blue-light/40">—</span>}
                           </td>
                           {/* Hit Rate ($) */}
                           <td className="px-4 py-3 text-center">
                             {row.hit_rate_dollar_score != null
                               ? <ScoreCell value={row.hit_rate_dollar_score} />
-                              : <span className="text-white/20">—</span>}
+                              : <span className="text-legacy-blue-light/40">—</span>}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className="text-white/50 tabular-nums">{row.rating_count}</span>
+                            <span className="text-legacy-blue-light tabular-nums">{row.rating_count}</span>
                           </td>
                         </tr>
                       );

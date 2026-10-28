@@ -20,8 +20,8 @@ function render() {
 
 function renderSetupMessage() {
   createRoot(document.getElementById('root')!).render(
-    <div className="min-h-screen bg-navy-900 text-white flex items-center justify-center px-6">
-      <p className="max-w-md text-center text-white/70 text-sm">
+    <div className="min-h-screen bg-white text-legacy-blue-dark flex items-center justify-center px-6">
+      <p className="max-w-md text-center text-legacy-blue-dark text-sm">
         Sign-in is not configured. Set VITE_AZURE_CLIENT_ID and VITE_AZURE_TENANT_ID (see .env.example)
         and rebuild.
       </p>

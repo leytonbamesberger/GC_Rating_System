@@ -89,6 +89,10 @@ const RATING_LABELS: Record<number, string> = {
   5: 'Excellent',
 };
 
+// A question's value: 0 = not answered yet, 1-5 = the score, NA = "doesn't apply". NA is saved as
+// null, which every average skips, so it neither raises nor lowers the GC's score.
+const NA = -1;
+
 const INITIAL_FORM: FormState = {
   job_number: '',
   job_name: '',
@@ -126,6 +130,11 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
   const [editingGC, setEditingGC] = useState<GeneralContractor | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Every step starts at the top of the page, not wherever the previous one was scrolled to.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [step]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -208,21 +217,22 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
   async function handleSubmit() {
     setSubmitting(true);
     setError('');
+    const score = (v: number) => (v === NA ? null : v);
     const { error } = await supabase.from('gc_ratings').insert({
       gc_id: form.gc_id,
       pm_id: pm.id,
       job_number: form.job_number,
       job_name: form.job_name || null,
-      payment_timeline: form.payment_timeline,
-      co_approval_timeline: form.co_approval_timeline,
-      co_negotiations: form.co_negotiations,
-      contract_terms: form.contract_terms,
-      conflict_mitigation: form.conflict_mitigation,
-      schedule_trade_stacking: form.schedule_trade_stacking,
-      schedule_accuracy: form.schedule_accuracy,
-      site_control: form.site_control,
-      relationship: form.relationship,
-      safety: form.safety,
+      payment_timeline: score(form.payment_timeline),
+      co_approval_timeline: score(form.co_approval_timeline),
+      co_negotiations: score(form.co_negotiations),
+      contract_terms: score(form.contract_terms),
+      conflict_mitigation: score(form.conflict_mitigation),
+      schedule_trade_stacking: score(form.schedule_trade_stacking),
+      schedule_accuracy: score(form.schedule_accuracy),
+      site_control: score(form.site_control),
+      relationship: score(form.relationship),
+      safety: score(form.safety),
     });
     setSubmitting(false);
     if (error) {
@@ -237,7 +247,7 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
     if (step === 1) return form.gc_id.length > 0;
     if (step >= 2 && step <= 11) {
       const q = RATING_QUESTIONS[step - 2];
-      return (form[q.key] as number) > 0;
+      return (form[q.key] as number) !== 0;
     }
     return true;
   }
@@ -246,19 +256,21 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
   const currentQuestion = step >= 2 && step <= 11 ? RATING_QUESTIONS[questionIndex] : null;
 
   return (
-    <div className="min-h-[calc(100vh-80px)] px-6 py-10 flex flex-col">
+    // On short screens (laptops, small windows) spacing tightens and the answers go two to a row so a
+    // whole question fits without scrolling; Back/Next stay pinned to the bottom either way.
+    <div className="min-h-[calc(100dvh-64px)] px-6 py-8 [@media(max-height:800px)]:py-4 flex flex-col">
       <div className="max-w-md mx-auto w-full flex-1 flex flex-col">
         {/* Progress bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-xs text-white/30 mb-2">
+        <div className="mb-6 [@media(max-height:800px)]:mb-3">
+          <div className="flex justify-between text-xs text-legacy-blue-light/50 mb-2">
             <span>Step {step + 1} of {TOTAL_STEPS}</span>
             {step >= 2 && step <= 11 && (
               <span>Question {questionIndex + 1} of 10</span>
             )}
           </div>
-          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-1 bg-legacy-blue-light/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-brand-500 rounded-full transition-all duration-300"
+              className="h-full bg-legacy-blue-dark rounded-full transition-all duration-300"
               style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
             />
           </div>
@@ -269,31 +281,31 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
         {/* Step 0: Job Info */}
         {step === 0 && (
           <div className="flex-1 flex flex-col">
-            <h2 className="text-2xl font-bold text-white mb-1">Job Information</h2>
-            <p className="text-white/40 text-sm mb-8">Enter the job details for this rating.</p>
+            <h2 className="text-2xl [@media(max-height:800px)]:text-xl font-bold text-legacy-blue-dark mb-1">Job Information</h2>
+            <p className="text-legacy-blue-light text-sm mb-6 [@media(max-height:800px)]:mb-4">Enter the job details for this rating.</p>
             <div className="flex flex-col gap-4">
               <div>
-                <label className="block text-white/60 text-xs uppercase tracking-wider font-medium mb-2">
-                  Job Number <span className="text-brand-500">*</span>
+                <label className="block text-legacy-blue-light text-xs uppercase tracking-wider font-medium mb-2">
+                  Job Number <span className="text-legacy-red">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.job_number}
                   onChange={(e) => setForm((f) => ({ ...f, job_number: e.target.value }))}
                   placeholder="e.g. 2024-0147"
-                  className="w-full bg-white/5 border border-white/10 focus:border-brand-500/60 rounded-lg px-4 py-3 text-white placeholder-white/20 text-sm focus:outline-none transition-colors"
+                  className="w-full bg-white border border-legacy-blue-light/25 focus:border-legacy-blue-dark rounded-lg px-4 py-3 text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-white/60 text-xs uppercase tracking-wider font-medium mb-2">
-                  Job Name <span className="text-white/20">(optional)</span>
+                <label className="block text-legacy-blue-light text-xs uppercase tracking-wider font-medium mb-2">
+                  Job Name <span className="text-legacy-blue-light/50">(optional)</span>
                 </label>
                 <input
                   type="text"
                   value={form.job_name}
                   onChange={(e) => setForm((f) => ({ ...f, job_name: e.target.value }))}
                   placeholder="e.g. Main Street Office Complex"
-                  className="w-full bg-white/5 border border-white/10 focus:border-brand-500/60 rounded-lg px-4 py-3 text-white placeholder-white/20 text-sm focus:outline-none transition-colors"
+                  className="w-full bg-white border border-legacy-blue-light/25 focus:border-legacy-blue-dark rounded-lg px-4 py-3 text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -303,8 +315,8 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
         {/* Step 1: GC Select */}
         {step === 1 && (
           <div className="flex-1 flex flex-col">
-            <h2 className="text-2xl font-bold text-white mb-1">Select General Contractor</h2>
-            <p className="text-white/40 text-sm mb-8">Search by name or abbreviation.</p>
+            <h2 className="text-2xl [@media(max-height:800px)]:text-xl font-bold text-legacy-blue-dark mb-1">Select General Contractor</h2>
+            <p className="text-legacy-blue-light text-sm mb-6 [@media(max-height:800px)]:mb-4">Search by name or abbreviation.</p>
             <div ref={searchRef} className="relative">
               <input
                 type="text"
@@ -312,20 +324,20 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
                 onChange={(e) => handleGCSearchChange(e.target.value)}
                 onFocus={() => gcSearch && setShowDropdown(true)}
                 placeholder="Search GC name or alias..."
-                className="w-full bg-white/5 border border-white/10 focus:border-brand-500/60 rounded-lg px-4 py-3 text-white placeholder-white/20 text-sm focus:outline-none transition-colors"
+                className="w-full bg-white border border-legacy-blue-light/25 focus:border-legacy-blue-dark rounded-lg px-4 py-3 text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none transition-colors"
               />
               {gcLoading && (
                 <div className="absolute right-3 top-3">
-                  <div className="w-4 h-4 border border-white/20 border-t-brand-500 rounded-full animate-spin" />
+                  <div className="w-4 h-4 border border-legacy-blue-light/25 border-t-legacy-blue-dark rounded-full animate-spin" />
                 </div>
               )}
               {form.gc_id && (
-                <div className="mt-3 bg-brand-500/10 border border-brand-500/30 rounded-lg px-4 py-2.5 text-brand-400 text-sm flex items-center justify-between gap-3">
+                <div className="mt-3 bg-legacy-blue-light/10 border border-legacy-blue-dark/40 rounded-lg px-4 py-2.5 text-legacy-blue-dark text-sm flex items-center justify-between gap-3">
                   <span className="truncate">Selected: <strong>{form.gc_name}</strong></span>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => selectedGC && setEditingGC(selectedGC)}
-                      className="text-brand-400/60 hover:text-brand-300 transition-colors text-xs underline underline-offset-2"
+                      className="text-legacy-blue-dark/60 hover:text-legacy-blue-light transition-colors text-xs underline underline-offset-2"
                     >
                       Edit
                     </button>
@@ -336,26 +348,26 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
                 </div>
               )}
               {showDropdown && !form.gc_id && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a2d45] border border-white/10 rounded-lg overflow-hidden shadow-xl z-20">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-legacy-blue-light/25 rounded-lg overflow-hidden shadow-xl z-20">
                   {gcResults.length === 0 && gcSearch.trim() && !gcLoading && (
-                    <div className="px-4 py-3 text-white/40 text-sm">No results found.</div>
+                    <div className="px-4 py-3 text-legacy-blue-light text-sm">No results found.</div>
                   )}
                   {gcResults.map((gc) => (
                     <button
                       key={gc.id}
                       onClick={() => selectGC(gc)}
-                      className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                      className="w-full text-left px-4 py-3 hover:bg-legacy-blue-light/5 transition-colors border-b border-legacy-blue-light/15 last:border-0"
                     >
-                      <p className="text-white text-sm font-medium">{gc.name}</p>
+                      <p className="text-legacy-blue-dark text-sm font-medium">{gc.name}</p>
                       {gc.aliases && (
-                        <p className="text-white/30 text-xs mt-0.5">{gc.aliases}</p>
+                        <p className="text-legacy-blue-light/50 text-xs mt-0.5">{gc.aliases}</p>
                       )}
                     </button>
                   ))}
                   {gcSearch.trim() && (
                     <button
                       onClick={() => { setPendingGCName(gcSearch.trim()); setShowAddGCModal(true); setShowDropdown(false); }}
-                      className="w-full text-left px-4 py-3 hover:bg-brand-500/10 text-brand-500 text-sm font-medium transition-colors border-t border-white/10"
+                      className="w-full text-left px-4 py-3 hover:bg-legacy-blue-light/5 text-legacy-blue-dark text-sm font-medium transition-colors border-t border-legacy-blue-light/25"
                     >
                       + Add new GC: "{gcSearch.trim()}"
                     </button>
@@ -369,29 +381,34 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
         {/* Steps 2–10: Rating Questions */}
         {currentQuestion && (
           <div className="flex-1 flex flex-col">
-            <h2 className="text-2xl font-bold text-white mb-2">{currentQuestion.label}</h2>
-            <p className="text-white/50 text-sm leading-relaxed mb-2">{currentQuestion.description}</p>
-            <p className="text-white/25 text-xs mb-8">Rate from 1 (Poor) to 5 (Excellent)</p>
-            <div className="flex flex-col gap-3">
-              {[1, 2, 3, 4, 5].map((val) => {
+            <h2 className="text-2xl [@media(max-height:800px)]:text-xl font-bold text-legacy-blue-dark mb-2">{currentQuestion.label}</h2>
+            <p className="text-legacy-blue-light text-sm leading-relaxed mb-2">{currentQuestion.description}</p>
+            <p className="text-legacy-blue-light/50 text-xs mb-6 [@media(max-height:800px)]:mb-3">
+              Rate from 1 (Poor) to 5 (Excellent), or choose N/A if it doesn't apply. N/A is left out of the score.
+            </p>
+            <div className="grid grid-cols-1 [@media(max-height:800px)]:grid-cols-2 gap-3 [@media(max-height:800px)]:gap-2">
+              {[1, 2, 3, 4, 5, NA].map((val) => {
                 const selected = (form[currentQuestion.key] as number) === val;
+                const isNA = val === NA;
                 return (
                   <button
                     key={val}
                     onClick={() => setForm((f) => ({ ...f, [currentQuestion.key]: val }))}
-                    className={`flex items-center gap-4 rounded-xl px-5 py-4 border transition-all duration-150 text-left ${
+                    className={`flex items-center gap-4 rounded-xl px-5 py-4 [@media(max-height:800px)]:px-4 [@media(max-height:800px)]:py-3 border transition-all duration-150 text-left ${
                       selected
-                        ? 'bg-brand-500 border-brand-500 text-white'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white'
+                        ? 'bg-legacy-blue-dark border-legacy-blue-dark text-white'
+                        : `bg-white hover:bg-legacy-blue-light/5 text-legacy-blue-dark ${
+                            isNA ? 'border-dashed border-legacy-blue-light/40' : 'border-legacy-blue-light/25'
+                          }`
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
-                      selected ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'
-                    }`}>
-                      {val}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${
+                      isNA ? 'text-[10px]' : 'text-sm'
+                    } ${selected ? 'bg-white/20 text-white' : 'bg-legacy-blue-light/10 text-legacy-blue-light'}`}>
+                      {isNA ? 'N/A' : val}
                     </div>
-                    <span className={`font-medium ${selected ? 'text-white' : 'text-white/80'}`}>
-                      {RATING_LABELS[val]}
+                    <span className={`font-medium ${selected ? 'text-white' : 'text-legacy-blue-dark'}`}>
+                      {isNA ? 'Not Applicable' : RATING_LABELS[val]}
                     </span>
                   </button>
                 );
@@ -403,41 +420,45 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
         {/* Step 11: Review */}
         {step === 12 && (
           <div className="flex-1 flex flex-col">
-            <h2 className="text-2xl font-bold text-white mb-1">Review & Submit</h2>
-            <p className="text-white/40 text-sm mb-6">Confirm your rating before submitting.</p>
-            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden mb-6">
-              <div className="px-5 py-3 border-b border-white/10 bg-white/5">
-                <p className="text-white/40 text-xs uppercase tracking-wider font-medium">Job Details</p>
+            <h2 className="text-2xl [@media(max-height:800px)]:text-xl font-bold text-legacy-blue-dark mb-1">Review & Submit</h2>
+            <p className="text-legacy-blue-light text-sm mb-6">Confirm your rating before submitting.</p>
+            <div className="bg-white border border-legacy-blue-light/25 rounded-xl overflow-hidden mb-6">
+              <div className="px-5 py-3 border-b border-legacy-blue-light/25 bg-white">
+                <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium">Job Details</p>
               </div>
               <div className="px-5 py-4 grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-white/40 text-xs mb-1">Job Number</p>
-                  <p className="text-white text-sm font-medium">{form.job_number}</p>
+                  <p className="text-legacy-blue-light text-xs mb-1">Job Number</p>
+                  <p className="text-legacy-blue-dark text-sm font-medium">{form.job_number}</p>
                 </div>
                 <div>
-                  <p className="text-white/40 text-xs mb-1">Job Name</p>
-                  <p className="text-white text-sm font-medium">{form.job_name || '—'}</p>
+                  <p className="text-legacy-blue-light text-xs mb-1">Job Name</p>
+                  <p className="text-legacy-blue-dark text-sm font-medium">{form.job_name || '—'}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-white/40 text-xs mb-1">General Contractor</p>
-                  <p className="text-white text-sm font-medium">{form.gc_name}</p>
+                  <p className="text-legacy-blue-light text-xs mb-1">General Contractor</p>
+                  <p className="text-legacy-blue-dark text-sm font-medium">{form.gc_name}</p>
                 </div>
               </div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-white/10 bg-white/5">
-                <p className="text-white/40 text-xs uppercase tracking-wider font-medium">Ratings</p>
+            <div className="bg-white border border-legacy-blue-light/25 rounded-xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-legacy-blue-light/25 bg-white">
+                <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium">Ratings</p>
               </div>
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-legacy-blue-light/15">
                 {RATING_QUESTIONS.map((q) => {
                   const val = form[q.key] as number;
                   return (
-                    <div key={q.key} className="px-5 py-3 flex items-center justify-between">
-                      <p className="text-white/70 text-sm">{q.label}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-brand-500 font-bold text-sm">{val}</span>
-                        <span className="text-white/30 text-xs">/ 5 — {RATING_LABELS[val]}</span>
-                      </div>
+                    <div key={q.key} className="px-5 py-3 [@media(max-height:800px)]:py-2 flex items-center justify-between">
+                      <p className="text-legacy-blue-dark text-sm">{q.label}</p>
+                      {val === NA ? (
+                        <span className="text-legacy-blue-light text-xs">N/A — not counted</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-legacy-blue-dark font-bold text-sm">{val}</span>
+                          <span className="text-legacy-blue-light/50 text-xs">/ 5 — {RATING_LABELS[val]}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -446,14 +467,14 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="mt-8 flex gap-3">
+        {/* Navigation: pinned to the bottom of the window so Next is always in reach */}
+        <div className="sticky bottom-0 z-10 mt-6 [@media(max-height:800px)]:mt-3 flex gap-3 bg-white pt-3 pb-3 border-t border-legacy-blue-light/15">
           <button
             onClick={() => {
               setError('');
               if (step === 0) { onBack(); } else { setStep((s) => s - 1); }
             }}
-            className="px-5 py-3 border border-white/10 rounded-lg text-white/50 hover:text-white hover:border-white/20 text-sm transition-colors"
+            className="px-5 py-3 border border-legacy-blue-light/25 rounded-lg text-legacy-blue-light hover:text-legacy-blue-dark hover:border-legacy-blue-light/25 text-sm transition-colors"
           >
             Back
           </button>
@@ -461,7 +482,7 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
             <button
               onClick={() => { setError(''); setStep((s) => s + 1); }}
               disabled={!canAdvanceStep()}
-              className="flex-1 bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
+              className="flex-1 bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-full py-3 text-sm transition-colors"
             >
               Next
             </button>
@@ -469,7 +490,7 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex-1 bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
+              className="flex-1 bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-full py-3 text-sm transition-colors"
             >
               {submitting ? 'Submitting...' : 'Submit Rating'}
             </button>

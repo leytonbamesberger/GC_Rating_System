@@ -90,17 +90,17 @@ export default function AddGCModal({ onClose, onSaved, initialName = '', editGC 
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-6"
+      className="fixed inset-0 bg-legacy-blue-dark/50 flex items-center justify-center z-50 px-6"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-[#1a2d45] border border-white/10 rounded-xl w-full max-w-md p-6 shadow-2xl">
+      <div className="bg-white border border-legacy-blue-light/20 rounded-xl w-full max-w-md p-6 shadow-xl text-legacy-blue-dark">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-white font-semibold text-lg">
+          <h3 className="text-legacy-blue-dark font-semibold text-lg">
             {isEdit ? 'Edit General Contractor' : 'Add General Contractor'}
           </h3>
           <button
             onClick={onClose}
-            className="text-white/30 hover:text-white transition-colors"
+            className="text-legacy-blue-light hover:text-legacy-blue-dark transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -109,8 +109,8 @@ export default function AddGCModal({ onClose, onSaved, initialName = '', editGC 
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="block text-white/60 text-xs uppercase tracking-wider font-medium mb-2">
-              Official GC Name <span className="text-brand-500">*</span>
+            <label className="block text-legacy-blue-light text-xs uppercase tracking-wide font-medium mb-2">
+              Official GC Name <span className="text-legacy-red">*</span>
             </label>
             <input
               ref={firstInputRef}
@@ -118,20 +118,20 @@ export default function AddGCModal({ onClose, onSaved, initialName = '', editGC 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Full legal name"
-              className="w-full bg-white/5 border border-white/10 focus:border-brand-500/60 rounded-lg px-4 py-3 text-white placeholder-white/20 text-sm focus:outline-none transition-colors"
+              className="w-full bg-white border border-legacy-blue-light/30 focus:border-legacy-blue-dark rounded-lg px-4 py-3 text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-white/60 text-xs uppercase tracking-wider font-medium mb-2">
-              Aliases <span className="text-white/20">(comma-separated)</span>
+            <label className="block text-legacy-blue-light text-xs uppercase tracking-wide font-medium mb-2">
+              Aliases <span className="text-legacy-blue-light/60">(comma-separated)</span>
             </label>
             <input
               type="text"
               value={aliases}
               onChange={(e) => setAliases(e.target.value)}
               placeholder="e.g. ABC, ABC Const, A.B.C."
-              className="w-full bg-white/5 border border-white/10 focus:border-brand-500/60 rounded-lg px-4 py-3 text-white placeholder-white/20 text-sm focus:outline-none transition-colors"
+              className="w-full bg-white border border-legacy-blue-light/30 focus:border-legacy-blue-dark rounded-lg px-4 py-3 text-legacy-blue-dark placeholder-legacy-blue-light/50 text-sm focus:outline-none transition-colors"
             />
           </div>
         </div>
@@ -142,13 +142,13 @@ export default function AddGCModal({ onClose, onSaved, initialName = '', editGC 
           <button
             onClick={handleSave}
             disabled={saving || !name.trim()}
-            className="flex-1 bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
+            className="flex-1 rounded-full bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium py-3 text-sm transition"
           >
             {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Save GC'}
           </button>
           <button
             onClick={onClose}
-            className="px-5 py-3 border border-white/10 rounded-lg text-white/50 hover:text-white text-sm transition-colors"
+            className="rounded-full px-5 py-3 border border-legacy-blue-light/30 text-legacy-blue-dark hover:bg-legacy-blue-light/5 text-sm transition"
           >
             Cancel
           </button>

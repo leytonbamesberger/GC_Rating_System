@@ -29,11 +29,11 @@ const SCORE_FIELDS: { key: keyof Rating; label: string }[] = [
 
 function ScoreBadge({ value }: { value: number | null }) {
   if (value == null) {
-    return <span className="text-white/20 text-sm">—</span>;
+    return <span className="text-legacy-blue-light/50 text-xs">N/A</span>;
   }
   const color =
-    value >= 3.5 ? 'text-green-400' :
-    value >= 2 ? 'text-yellow-400' : 'text-red-400';
+    value >= 3.5 ? 'text-emerald-700' :
+    value >= 2 ? 'text-amber-600' : 'text-legacy-red';
   return (
     <span className={`text-sm font-semibold tabular-nums ${color}`}>{value}</span>
   );
@@ -100,7 +100,7 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
   if (error || !gc) {
     return (
       <div className="min-h-[calc(100vh-80px)] px-6 py-10 max-w-4xl mx-auto">
-        <button onClick={onBack} className="text-white/40 hover:text-white text-sm flex items-center gap-2 mb-6 transition-colors">
+        <button onClick={onBack} className="text-legacy-blue-light hover:text-legacy-blue-dark text-sm flex items-center gap-2 mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </button>
         <ErrorMessage message={error || 'GC not found.'} />
@@ -121,7 +121,7 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
       <div className="max-w-4xl mx-auto">
         <button
           onClick={onBack}
-          className="text-white/40 hover:text-white text-sm flex items-center gap-2 mb-6 transition-colors"
+          className="text-legacy-blue-light hover:text-legacy-blue-dark text-sm flex items-center gap-2 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
@@ -130,24 +130,24 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
         <div className="mb-8">
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <h2 className="text-3xl font-bold text-white">{gc.name}</h2>
+              <h2 className="text-3xl font-bold text-legacy-blue-dark">{gc.name}</h2>
               {gc.aliases ? (
-                <p className="text-white/40 text-sm mt-1">
-                  Also known as: <span className="text-white/60">{gc.aliases}</span>
+                <p className="text-legacy-blue-light text-sm mt-1">
+                  Also known as: <span className="text-legacy-blue-light">{gc.aliases}</span>
                 </p>
               ) : (
-                <p className="text-white/20 text-sm mt-1 italic">No aliases</p>
+                <p className="text-legacy-blue-light/50 text-sm mt-1 italic">No aliases</p>
               )}
             </div>
             <button
               onClick={() => setShowEditGCModal(true)}
-              className="flex-shrink-0 mt-1 flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded-lg text-white/40 hover:text-white hover:border-white/20 text-xs transition-colors"
+              className="flex-shrink-0 mt-1 flex items-center gap-1.5 px-3 py-1.5 border border-legacy-blue-light/25 rounded-lg text-legacy-blue-light hover:text-legacy-blue-dark hover:border-legacy-blue-light/25 text-xs transition-colors"
             >
               <Edit2 className="w-3.5 h-3.5" />
               Edit
             </button>
           </div>
-          <p className="text-white/30 text-xs mt-2 uppercase tracking-wider">
+          <p className="text-legacy-blue-light/50 text-xs mt-2 uppercase tracking-wider">
             {ratings.length} report{ratings.length !== 1 ? 's' : ''} submitted
           </p>
         </div>
@@ -171,26 +171,26 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 flex flex-col gap-6">
             {ratings.length > 0 && (
-              <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-white/10">
-                  <p className="text-white/60 text-xs uppercase tracking-wider font-medium">Category Averages</p>
+              <div className="bg-white border border-legacy-blue-light/25 rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-legacy-blue-light/25">
+                  <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium">Category Averages</p>
                 </div>
-                <div className="divide-y divide-white/5">
+                <div className="divide-y divide-legacy-blue-light/15">
                   {SCORE_FIELDS.map((f) => {
                     const val = row[f.key as keyof typeof row] as number | null;
                     return (
                       <div key={f.key} className="px-5 py-2.5 flex items-center justify-between">
-                        <p className="text-white/60 text-xs">{f.label}</p>
+                        <p className="text-legacy-blue-light text-xs">{f.label}</p>
                         {val != null ? (
                           <span className={`text-sm font-semibold tabular-nums ${
-                            val >= 4.5 ? 'text-green-400' :
-                            val >= 3.5 ? 'text-white' :
-                            val >= 2.5 ? 'text-yellow-400' : 'text-red-400'
+                            val >= 4.5 ? 'text-emerald-700' :
+                            val >= 3.5 ? 'text-legacy-blue-dark' :
+                            val >= 2.5 ? 'text-amber-600' : 'text-legacy-red'
                           }`}>
                             {val.toFixed(1)}
                           </span>
                         ) : (
-                          <span className="text-white/20 text-sm">—</span>
+                          <span className="text-legacy-blue-light/50 text-sm">—</span>
                         )}
                       </div>
                     );
@@ -201,29 +201,29 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
           </div>
 
           <div className="lg:col-span-2">
-            <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-white/10">
-                <p className="text-white/60 text-xs uppercase tracking-wider font-medium">Submitted Reports</p>
+            <div className="bg-white border border-legacy-blue-light/25 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-legacy-blue-light/25">
+                <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium">Submitted Reports</p>
               </div>
 
               {ratings.length === 0 ? (
-                <div className="px-5 py-10 text-center text-white/30">
+                <div className="px-5 py-10 text-center text-legacy-blue-light/50">
                   <p>No reports submitted yet for this GC.</p>
                 </div>
               ) : (
-                <div className="divide-y divide-white/5">
+                <div className="divide-y divide-legacy-blue-light/15">
                   {ratings.map((r) => (
                     <div key={r.id} className="px-5 py-4">
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div>
-                          <p className="text-white font-semibold text-sm">{r.job_number}</p>
+                          <p className="text-legacy-blue-dark font-semibold text-sm">{r.job_number}</p>
                           {r.job_name && (
-                            <p className="text-white/50 text-xs mt-0.5">{r.job_name}</p>
+                            <p className="text-legacy-blue-light text-xs mt-0.5">{r.job_name}</p>
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <p className="text-white/40 text-xs">{r.pm_name}</p>
-                          <p className="text-white/25 text-xs mt-0.5">
+                          <p className="text-legacy-blue-light text-xs">{r.pm_name}</p>
+                          <p className="text-legacy-blue-light/50 text-xs mt-0.5">
                             {new Date(r.created_at).toLocaleDateString('en-US', {
                               month: 'short', day: 'numeric', year: 'numeric',
                             })}
@@ -234,8 +234,8 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
                         {SCORE_FIELDS.map((f) => {
                           const val = r[f.key as keyof Rating] as number | null;
                           return (
-                            <div key={f.key} className="flex items-center justify-between bg-white/3 rounded px-2.5 py-1.5">
-                              <p className="text-white/40 text-[11px]">{f.label}</p>
+                            <div key={f.key} className="flex items-center justify-between bg-legacy-blue-light/5 rounded px-2.5 py-1.5">
+                              <p className="text-legacy-blue-light text-[11px]">{f.label}</p>
                               <ScoreBadge value={val} />
                             </div>
                           );
@@ -263,9 +263,9 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
 
 function ScoreCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl border p-4 ${highlight ? 'bg-brand-500/10 border-brand-500/30' : 'bg-white/5 border-white/10'}`}>
-      <p className="text-white/40 text-xs uppercase tracking-wider font-medium mb-1">{label}</p>
-      <p className={`text-2xl font-bold tabular-nums ${highlight ? 'text-brand-400' : 'text-white'}`}>
+    <div className={`rounded-xl border p-4 ${highlight ? 'bg-legacy-blue-light/10 border-legacy-blue-dark/40' : 'bg-white border-legacy-blue-light/25'}`}>
+      <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium mb-1">{label}</p>
+      <p className={`text-2xl font-bold tabular-nums ${highlight ? 'text-legacy-blue-dark' : 'text-legacy-blue-dark'}`}>
         {value}
       </p>
     </div>

@@ -2,11 +2,20 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { GCRow } from '../screens/GCDashboard';
 
-// Score → RGB color (mirrors dashboard green/yellow/red)
-function scoreColor(v: number): [number, number, number] {
-  if (v >= 3.5) return [74, 222, 128];   // green-400
-  if (v >= 2.0) return [250, 204, 21];   // yellow-400
-  return [248, 113, 113];                 // red-400
+type RGB = [number, number, number];
+
+// Legacy PM Assistant palette, as RGB (see tailwind.config.js).
+const BLUE_DARK: RGB = [0, 48, 88];       // #003058: header, primary text
+const BLUE_LIGHT: RGB = [24, 56, 95];     // #18385f: secondary text
+const TINT: RGB = [243, 245, 247];        // blue-light at 5% over white
+const LINE: RGB = [214, 220, 227];        // blue-light at ~15% over white
+const WHITE: RGB = [255, 255, 255];
+
+// Score → text color (mirrors the dashboard: green / amber / Legacy red)
+function scoreColor(v: number): RGB {
+  if (v >= 3.5) return [4, 120, 87];      // emerald-700
+  if (v >= 2.0) return [217, 119, 6];     // amber-600
+  return [238, 52, 40];                    // legacy-red
 }
 
 function fmtScore(v: number | null): string {
@@ -26,45 +35,46 @@ export function generatePeriodicReport(rows: GCRow[]): void {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-  // ── Header background ───────────────────────────────────────────────────
-  doc.setFillColor(18, 35, 51);
+  // ── Header band ──────────────────────────────────────────────────────────
+  doc.setFillColor(...BLUE_DARK);
   doc.rect(0, 0, pageW, 72, 'F');
 
   // Title
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(...WHITE);
   doc.text('GC Performance Report', margin, 30);
 
   // Subtitle
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
-  doc.setTextColor(180, 200, 220);
+  doc.setTextColor(215, 225, 236);
   doc.text('All-time data · Ranked by Overall Score (highest to lowest)', margin, 46);
 
   // Date (right-aligned)
   doc.setFontSize(9);
-  doc.setTextColor(140, 165, 190);
+  doc.setTextColor(190, 205, 222);
   doc.text(`Generated ${dateStr}`, pageW - margin, 30, { align: 'right' });
 
   // GC count
-  doc.setFontSize(9);
   doc.text(
     `${eligible.length} contractor${eligible.length !== 1 ? 's' : ''} with PM reports`,
     pageW - margin, 46, { align: 'right' },
   );
 
   // Score key strip
-  doc.setFillColor(24, 44, 64);
+  doc.setFillColor(...TINT);
   doc.rect(0, 72, pageW, 20, 'F');
+  doc.setDrawColor(...LINE);
+  doc.setLineWidth(0.5);
+  doc.line(0, 92, pageW, 92);
   doc.setFontSize(7.5);
-  doc.setTextColor(140, 165, 190);
-  const keyItems: [string, [number, number, number]][] = [
-    ['Score key:', [140, 165, 190]],
-    ['4.0 – 5.0  Excellent', [74, 222, 128]],
-    ['2.5 – 3.9  Satisfactory', [250, 204, 21]],
-    ['1.0 – 2.4  Poor', [248, 113, 113]],
-    ['—  No data', [120, 140, 160]],
+  const keyItems: [string, RGB][] = [
+    ['Score key:', BLUE_LIGHT],
+    ['3.5 – 5.0  Excellent', scoreColor(5)],
+    ['2.0 – 3.4  Satisfactory', scoreColor(3)],
+    ['1.0 – 1.9  Poor', scoreColor(1)],
+    ['—  No data', BLUE_LIGHT],
   ];
   let kx = margin;
   for (const [text, color] of keyItems) {
@@ -103,7 +113,7 @@ export function generatePeriodicReport(rows: GCRow[]): void {
   ]);
 
   autoTable(doc, {
-    startY: 96,
+    startY: 100,
     head: [COLS.map((c) => c.header)],
     body: bodyData,
     margin: { left: margin, right: margin },
@@ -112,21 +122,18 @@ export function generatePeriodicReport(rows: GCRow[]): void {
       fontSize: 7.5,
       cellPadding: { top: 4, bottom: 4, left: 4, right: 4 },
       font: 'helvetica',
-      textColor: [220, 235, 250],
-      fillColor: [22, 38, 56],
-      lineColor: [40, 62, 88],
+      textColor: BLUE_DARK,
+      fillColor: WHITE,
+      lineColor: LINE,
       lineWidth: 0.5,
       halign: 'center',
       valign: 'middle',
     },
     headStyles: {
-      fillColor: [18, 35, 51],
-      textColor: [140, 165, 190],
+      fillColor: TINT,
+      textColor: BLUE_LIGHT,
       fontStyle: 'bold',
       fontSize: 7,
-    },
-    alternateRowStyles: {
-      fillColor: [26, 44, 64],
     },
     columnStyles: {
       0: { cellWidth: 28, halign: 'center' },
@@ -138,31 +145,21 @@ export function generatePeriodicReport(rows: GCRow[]): void {
         const isTop5 = top5Ids.has(row.id);
 
         if (isTop5) {
-          data.cell.styles.fillColor = [28, 52, 76];
+          data.cell.styles.fillColor = TINT;
         }
 
         if (data.column.index >= 2 && data.cell.text[0] !== '—') {
           const v = parseFloat(data.cell.text[0]);
           if (!isNaN(v)) {
-            const [r, g, b] = scoreColor(v);
-            data.cell.styles.textColor = [r, g, b];
+            data.cell.styles.textColor = scoreColor(v);
             data.cell.styles.fontStyle = 'bold';
           }
         }
 
         if (data.column.index === 1 && isTop5) {
           data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.textColor = [255, 255, 255];
         }
       }
-    },
-    didDrawPage(hookData) {
-      const pageNum = (hookData.pageNumber as number);
-      const totalPages = (doc.internal as { getNumberOfPages(): number }).getNumberOfPages();
-      doc.setFontSize(7.5);
-      doc.setTextColor(100, 130, 160);
-      doc.text(`Page ${pageNum} of ${totalPages}`, pageW / 2, pageH - 14, { align: 'center' });
-      doc.text('Confidential — Internal Use Only', margin, pageH - 14);
     },
   });
 
@@ -174,29 +171,41 @@ export function generatePeriodicReport(rows: GCRow[]): void {
   const blockW = 280;
 
   // Subtle background pill
-  doc.setFillColor(22, 38, 56);
-  doc.setDrawColor(50, 80, 115);
+  doc.setFillColor(...TINT);
+  doc.setDrawColor(...LINE);
   doc.setLineWidth(0.5);
   doc.roundedRect(blockX, blockTop, blockW, blockH, 4, 4, 'FD');
 
   // Label
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(120, 150, 180);
+  doc.setTextColor(...BLUE_LIGHT);
   doc.text('View live data & full contractor profiles at', pageW / 2, blockTop + 12, { align: 'center' });
 
-  // Link — slightly larger, blue, underlined
+  // Link — slightly larger, dark blue, underlined
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.setTextColor(80, 150, 220);
+  doc.setTextColor(...BLUE_DARK);
   const linkText = 'gc-rating-project.vercel.app';
   const linkX = pageW / 2 - doc.getTextWidth(linkText) / 2;
   const linkY = blockTop + 24;
   doc.textWithLink(linkText, pageW / 2, linkY, { align: 'center', url: 'https://gc-rating-project.vercel.app/' });
   // Underline
-  doc.setDrawColor(80, 150, 220);
+  doc.setDrawColor(...BLUE_DARK);
   doc.setLineWidth(0.4);
   doc.line(linkX, linkY + 1.5, linkX + doc.getTextWidth(linkText), linkY + 1.5);
+
+  // ── Footer on every page ─────────────────────────────────────────────────
+  // Stamped once the table is done, so the total page count is known.
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page++) {
+    doc.setPage(page);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...BLUE_LIGHT);
+    doc.text(`Page ${page} of ${totalPages}`, pageW / 2, pageH - 14, { align: 'center' });
+    doc.text('Confidential — Internal Use Only', margin, pageH - 14);
+  }
 
   const fileName = `GC-Performance-Report-${now.toISOString().slice(0, 10)}.pdf`;
   doc.save(fileName);

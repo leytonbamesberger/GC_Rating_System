@@ -107,7 +107,7 @@ function hitRateToRatio(bids: number, won: number): number {
 }
 
 const SCORE_COLOR = (v: number) =>
-  v >= 3.5 ? 'text-green-400' : v >= 2 ? 'text-yellow-400' : 'text-red-400';
+  v >= 3.5 ? 'text-emerald-700' : v >= 2 ? 'text-amber-600' : 'text-legacy-red';
 
 // ---------------------------------------------------------------------------
 // BuildingConnected types & parsing
@@ -386,13 +386,13 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
         <div className="mb-8">
           <button
             onClick={onBack}
-            className="text-white/40 hover:text-white text-sm flex items-center gap-1 transition-colors mb-4"
+            className="text-legacy-blue-light hover:text-legacy-blue-dark text-sm flex items-center gap-1 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </button>
-          <h2 className="text-2xl font-bold text-white">Upload CSV</h2>
-          <p className="text-white/40 text-sm mt-1">
+          <h2 className="text-2xl font-bold text-legacy-blue-dark">Upload CSV</h2>
+          <p className="text-legacy-blue-light text-sm mt-1">
             Select the upload type, then drop or browse for your CSV file.
           </p>
         </div>
@@ -410,8 +410,8 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
               onClick={() => handleTypeChange(opt.value)}
               className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${
                 uploadType === opt.value
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-white/5 border border-white/10 text-white/50 hover:text-white hover:border-white/20'
+                  ? 'bg-legacy-blue-dark text-white'
+                  : 'bg-white border border-legacy-blue-light/25 text-legacy-blue-light hover:text-legacy-blue-dark hover:border-legacy-blue-light/25'
               }`}
             >
               {opt.label}
@@ -421,8 +421,8 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
 
         {/* Column guide */}
         {uploadType === 'buildingconnected' ? (
-          <div className="mb-6 bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4">
-            <p className="text-white/50 text-xs uppercase tracking-wider font-medium mb-3">
+          <div className="mb-6 bg-legacy-tint border border-legacy-blue-light/25 rounded-xl px-5 py-4">
+            <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium mb-3">
               Required CSV Columns — "Client" sheet
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -433,17 +433,17 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
                 { col: 'E', name: 'Total Bids Submitted', desc: 'Dollar volume' },
                 { col: 'F', name: 'Total Won', desc: 'Dollar won' },
               ].map((c) => (
-                <div key={c.col} className="flex flex-col gap-0.5 bg-white/5 rounded-lg px-3 py-2">
-                  <span className="text-white/30 text-[10px] uppercase tracking-wider">Col {c.col}</span>
-                  <span className="text-white text-xs font-semibold">{c.name}</span>
-                  <span className="text-white/40 text-[11px]">{c.desc}</span>
+                <div key={c.col} className="flex flex-col gap-0.5 bg-white rounded-lg px-3 py-2">
+                  <span className="text-legacy-blue-light/50 text-[10px] uppercase tracking-wider">Col {c.col}</span>
+                  <span className="text-legacy-blue-dark text-xs font-semibold">{c.name}</span>
+                  <span className="text-legacy-blue-light text-[11px]">{c.desc}</span>
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          <div className="mb-6 bg-white/[0.03] border border-white/10 rounded-xl px-5 py-4">
-            <p className="text-white/50 text-xs uppercase tracking-wider font-medium mb-3">
+          <div className="mb-6 bg-legacy-tint border border-legacy-blue-light/25 rounded-xl px-5 py-4">
+            <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium mb-3">
               Required CSV Columns — Est Relation
             </p>
             <div className="grid grid-cols-2 gap-2 max-w-xs">
@@ -451,14 +451,14 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
                 { col: 'A', name: 'GC Name', desc: 'General contractor name' },
                 { col: 'B', name: 'Score', desc: '1–5 rating' },
               ].map((c) => (
-                <div key={c.col} className="flex flex-col gap-0.5 bg-white/5 rounded-lg px-3 py-2">
-                  <span className="text-white/30 text-[10px] uppercase tracking-wider">Col {c.col}</span>
-                  <span className="text-white text-xs font-semibold">{c.name}</span>
-                  <span className="text-white/40 text-[11px]">{c.desc}</span>
+                <div key={c.col} className="flex flex-col gap-0.5 bg-white rounded-lg px-3 py-2">
+                  <span className="text-legacy-blue-light/50 text-[10px] uppercase tracking-wider">Col {c.col}</span>
+                  <span className="text-legacy-blue-dark text-xs font-semibold">{c.name}</span>
+                  <span className="text-legacy-blue-light text-[11px]">{c.desc}</span>
                 </div>
               ))}
             </div>
-            <p className="text-white/30 text-xs mt-3">
+            <p className="text-legacy-blue-light/50 text-xs mt-3">
               GCs not present in this CSV will keep their existing Est Relation score.
             </p>
           </div>
@@ -473,21 +473,21 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
             onClick={() => fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-xl px-8 py-14 flex flex-col items-center gap-4 cursor-pointer transition-colors ${
               dragOver
-                ? 'border-brand-500 bg-brand-500/5'
-                : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                ? 'border-legacy-blue-dark bg-legacy-blue-light/10'
+                : 'border-legacy-blue-light/25 hover:border-legacy-blue-light/25 bg-legacy-tint'
             }`}
           >
-            <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
-              <Upload className="w-7 h-7 text-white/30" />
+            <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+              <Upload className="w-7 h-7 text-legacy-blue-light/50" />
             </div>
             <div className="text-center">
-              <p className="text-white font-semibold">Drop your CSV here</p>
-              <p className="text-white/40 text-sm mt-1">or click to browse</p>
+              <p className="text-legacy-blue-dark font-semibold">Drop your CSV here</p>
+              <p className="text-legacy-blue-light text-sm mt-1">or click to browse</p>
             </div>
             {state === 'error' && parseError && (
-              <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 max-w-md text-left">
-                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-red-400 text-sm">{parseError}</p>
+              <div className="flex items-start gap-2 bg-legacy-red/10 border border-legacy-red/30 rounded-lg px-4 py-3 max-w-md text-left">
+                <AlertTriangle className="w-4 h-4 text-legacy-red flex-shrink-0 mt-0.5" />
+                <p className="text-legacy-red text-sm">{parseError}</p>
               </div>
             )}
             <input
@@ -503,8 +503,8 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
         {/* Parsing */}
         {state === 'parsing' && (
           <div className="flex flex-col items-center gap-4 py-20">
-            <div className="w-10 h-10 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-white/50 text-sm">Parsing {fileName}…</p>
+            <div className="w-10 h-10 border-2 border-legacy-blue-dark border-t-transparent rounded-full animate-spin" />
+            <p className="text-legacy-blue-light text-sm">Parsing {fileName}…</p>
           </div>
         )}
 
@@ -513,22 +513,22 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
           <div className="flex flex-col gap-6">
             {/* Summary bar */}
             <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5">
-                <FileText className="w-4 h-4 text-white/40" />
-                <span className="text-white/70 text-sm">{fileName}</span>
+              <div className="flex items-center gap-2 bg-white border border-legacy-blue-light/25 rounded-lg px-4 py-2.5">
+                <FileText className="w-4 h-4 text-legacy-blue-light" />
+                <span className="text-legacy-blue-dark text-sm">{fileName}</span>
                 <button
                   onClick={resetFile}
-                  className="text-white/30 hover:text-white ml-2 transition-colors"
+                  className="text-legacy-blue-light/50 hover:text-legacy-blue-dark ml-2 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <div className="flex items-center gap-1.5 text-sm text-green-400">
+              <div className="flex items-center gap-1.5 text-sm text-emerald-700">
                 <CheckCircle className="w-4 h-4" />
                 {matchedCount} GC{matchedCount !== 1 ? 's' : ''} matched
               </div>
               {unmatchedRows.length > 0 && (
-                <div className="flex items-center gap-1.5 text-sm text-yellow-400">
+                <div className="flex items-center gap-1.5 text-sm text-amber-600">
                   <AlertTriangle className="w-4 h-4" />
                   {unmatchedRows.length} unmatched (will be skipped)
                 </div>
@@ -536,24 +536,24 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
             </div>
 
             {uploadError && (
-              <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-red-400 text-sm">{uploadError}</p>
+              <div className="flex items-start gap-2 bg-legacy-red/10 border border-legacy-red/30 rounded-xl px-4 py-3">
+                <AlertTriangle className="w-4 h-4 text-legacy-red flex-shrink-0 mt-0.5" />
+                <p className="text-legacy-red text-sm">{uploadError}</p>
               </div>
             )}
 
             {/* BuildingConnected preview table */}
             {uploadType === 'buildingconnected' && (
-              <div className="rounded-xl border border-white/10 overflow-hidden">
-                <div className="px-5 py-3 border-b border-white/10 bg-white/[0.02]">
-                  <p className="text-white/50 text-xs uppercase tracking-wider font-medium">
+              <div className="rounded-xl border border-legacy-blue-light/25 overflow-hidden">
+                <div className="px-5 py-3 border-b border-legacy-blue-light/25 bg-legacy-tint">
+                  <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium">
                     Preview — {matchedCount} rows will be updated
                   </p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[700px]">
                     <thead>
-                      <tr className="bg-white/[0.03] border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
+                      <tr className="bg-legacy-tint border-b border-legacy-blue-light/25 text-legacy-blue-light text-xs uppercase tracking-wider">
                         <th className="px-4 py-3 text-left font-medium">CSV Client Name</th>
                         <th className="px-4 py-3 text-left font-medium">Matched GC</th>
                         <th className="px-4 py-3 text-center font-medium"># Bids</th>
@@ -562,24 +562,24 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
                         <th className="px-4 py-3 text-center font-medium">Bids Score</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-legacy-blue-light/15">
                       {bcMatched
                         .filter((r) => r.gcId !== null)
                         .map((row, i) => (
-                          <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="px-4 py-3 text-white/60 text-xs">{row.client}</td>
+                          <tr key={i} className="hover:bg-legacy-blue-light/5 transition-colors">
+                            <td className="px-4 py-3 text-legacy-blue-light text-xs">{row.client}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
-                                <span className="text-white text-sm font-medium">{row.gcName}</span>
+                                <span className="text-legacy-blue-dark text-sm font-medium">{row.gcName}</span>
                                 {row.matchConfidence === 'fuzzy' && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-400 font-medium uppercase tracking-wider">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-medium uppercase tracking-wider">
                                     fuzzy
                                   </span>
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-center text-white/60 tabular-nums">{row.bids.toFixed(1)}</td>
-                            <td className="px-4 py-3 text-center text-white/60 tabular-nums">
+                            <td className="px-4 py-3 text-center text-legacy-blue-light tabular-nums">{row.bids.toFixed(1)}</td>
+                            <td className="px-4 py-3 text-center text-legacy-blue-light tabular-nums">
                               {fmtDollar(row.totalBidsSubmitted)}
                             </td>
                             <td className="px-4 py-3 text-center tabular-nums">
@@ -598,32 +598,32 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
 
             {/* Est Relation preview table */}
             {uploadType === 'est-relation' && (
-              <div className="rounded-xl border border-white/10 overflow-hidden">
-                <div className="px-5 py-3 border-b border-white/10 bg-white/[0.02]">
-                  <p className="text-white/50 text-xs uppercase tracking-wider font-medium">
+              <div className="rounded-xl border border-legacy-blue-light/25 overflow-hidden">
+                <div className="px-5 py-3 border-b border-legacy-blue-light/25 bg-legacy-tint">
+                  <p className="text-legacy-blue-light text-xs uppercase tracking-wider font-medium">
                     Preview — {matchedCount} rows will be updated
                   </p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[400px]">
                     <thead>
-                      <tr className="bg-white/[0.03] border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
+                      <tr className="bg-legacy-tint border-b border-legacy-blue-light/25 text-legacy-blue-light text-xs uppercase tracking-wider">
                         <th className="px-4 py-3 text-left font-medium">CSV Name</th>
                         <th className="px-4 py-3 text-left font-medium">Matched GC</th>
                         <th className="px-4 py-3 text-center font-medium">Est Relation Score</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-legacy-blue-light/15">
                       {erMatched
                         .filter((r) => r.gcId !== null)
                         .map((row, i) => (
-                          <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="px-4 py-3 text-white/60 text-xs">{row.client}</td>
+                          <tr key={i} className="hover:bg-legacy-blue-light/5 transition-colors">
+                            <td className="px-4 py-3 text-legacy-blue-light text-xs">{row.client}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
-                                <span className="text-white text-sm font-medium">{row.gcName}</span>
+                                <span className="text-legacy-blue-dark text-sm font-medium">{row.gcName}</span>
                                 {row.matchConfidence === 'fuzzy' && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-400 font-medium uppercase tracking-wider">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-medium uppercase tracking-wider">
                                     fuzzy
                                   </span>
                                 )}
@@ -642,29 +642,29 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
 
             {/* Unmatched collapsible */}
             {unmatchedRows.length > 0 && (
-              <div className="rounded-xl border border-yellow-500/20 overflow-hidden">
+              <div className="rounded-xl border border-amber-500/30 overflow-hidden">
                 <button
                   onClick={() => setShowUnmatched((v) => !v)}
-                  className="w-full flex items-center justify-between px-5 py-3 bg-yellow-500/5 hover:bg-yellow-500/10 transition-colors"
+                  className="w-full flex items-center justify-between px-5 py-3 bg-amber-500/10 hover:bg-amber-500/10 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                    <span className="text-yellow-400 text-sm font-medium">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span className="text-amber-600 text-sm font-medium">
                       {unmatchedRows.length} CSV row{unmatchedRows.length !== 1 ? 's' : ''} could not be
                       matched to a GC — will be skipped
                     </span>
                   </div>
                   {showUnmatched ? (
-                    <ChevronUp className="w-4 h-4 text-yellow-400/50" />
+                    <ChevronUp className="w-4 h-4 text-amber-600/60" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-yellow-400/50" />
+                    <ChevronDown className="w-4 h-4 text-amber-600/60" />
                   )}
                 </button>
                 {showUnmatched && (
-                  <div className="divide-y divide-white/5">
+                  <div className="divide-y divide-legacy-blue-light/15">
                     {unmatchedRows.map((row, i) => (
                       <div key={i} className="px-5 py-2.5 flex items-center gap-3">
-                        <span className="text-white/40 text-sm">{row.client}</span>
+                        <span className="text-legacy-blue-light text-sm">{row.client}</span>
                       </div>
                     ))}
                   </div>
@@ -677,14 +677,14 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
               <button
                 onClick={uploadType === 'buildingconnected' ? handleConfirmBC : handleConfirmER}
                 disabled={matchedCount === 0}
-                className="flex items-center gap-2 px-6 py-2.5 bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-full transition-colors"
               >
                 <Upload className="w-4 h-4" />
                 Confirm &amp; Upload {matchedCount} GC{matchedCount !== 1 ? 's' : ''}
               </button>
               <button
                 onClick={resetFile}
-                className="px-5 py-2.5 border border-white/10 rounded-lg text-white/40 hover:text-white text-sm transition-colors"
+                className="px-5 py-2.5 border border-legacy-blue-light/25 rounded-lg text-legacy-blue-light hover:text-legacy-blue-dark text-sm transition-colors"
               >
                 Cancel
               </button>
@@ -695,31 +695,31 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
         {/* Uploading */}
         {state === 'uploading' && (
           <div className="flex flex-col items-center gap-4 py-20">
-            <div className="w-10 h-10 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-white/50 text-sm">Updating GC records…</p>
+            <div className="w-10 h-10 border-2 border-legacy-blue-dark border-t-transparent rounded-full animate-spin" />
+            <p className="text-legacy-blue-light text-sm">Updating GC records…</p>
           </div>
         )}
 
         {/* Done */}
         {state === 'done' && (
           <div className="flex flex-col items-center gap-6 py-20">
-            <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-400" />
+            <div className="w-16 h-16 rounded-full bg-emerald-600/10 flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-emerald-700" />
             </div>
             <div className="text-center">
-              <p className="text-white text-xl font-bold">Upload Complete</p>
-              <p className="text-white/40 text-sm mt-2">{doneLabel}</p>
+              <p className="text-legacy-blue-dark text-xl font-bold">Upload Complete</p>
+              <p className="text-legacy-blue-light text-sm mt-2">{doneLabel}</p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={onComplete}
-                className="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors"
+                className="px-6 py-2.5 bg-legacy-blue-dark hover:bg-legacy-blue-dark/90 text-white text-sm font-semibold rounded-full transition-colors"
               >
                 Back to Dashboard
               </button>
               <button
                 onClick={() => { resetFile(); setState('idle'); }}
-                className="px-5 py-2.5 border border-white/10 rounded-lg text-white/40 hover:text-white text-sm transition-colors"
+                className="px-5 py-2.5 border border-legacy-blue-light/25 rounded-lg text-legacy-blue-light hover:text-legacy-blue-dark text-sm transition-colors"
               >
                 Upload Another
               </button>

@@ -6,37 +6,29 @@ type HeaderProps = {
 };
 
 export default function Header({ subtitle = 'GC Rating System', onHome, userName, onSignOut }: HeaderProps) {
+  const title = 'Legacy Mechanical';
   return (
-    <header className="w-full bg-navy-900 border-b border-white/10 px-6 py-5">
-      <div className="max-w-6xl mx-auto flex items-start justify-between gap-4">
-        <div>
-          <div className="inline-block">
-            {onHome ? (
-              <button
-                onClick={onHome}
-                className="text-2xl font-bold text-white tracking-tight leading-none hover:text-white/80 transition-colors text-left"
-              >
-                Legacy Mechanical
-              </button>
-            ) : (
-              <h1 className="text-2xl font-bold text-white tracking-tight leading-none">
-                Legacy Mechanical
-              </h1>
-            )}
-            <div className="h-0.5 bg-brand-500 mt-1 w-full" />
-          </div>
-          {subtitle && (
-            <p className="text-sm text-white/50 mt-1 font-medium tracking-widest uppercase">
-              {subtitle}
-            </p>
+    <header className="h-16 w-full shrink-0 bg-legacy-blue-dark">
+      <div className="flex h-full items-center justify-between px-6">
+        <div className="flex items-baseline gap-3">
+          {onHome ? (
+            <button
+              onClick={onHome}
+              className="text-lg font-semibold tracking-tight text-white transition-opacity hover:opacity-80"
+            >
+              {title}
+            </button>
+          ) : (
+            <h1 className="text-lg font-semibold tracking-tight text-white">{title}</h1>
           )}
+          {subtitle && <span className="text-sm text-white/70">{subtitle}</span>}
         </div>
         {onSignOut && (
-          <div className="text-right flex-shrink-0">
-            {userName && <p className="text-sm text-white/70">{userName}</p>}
+          <div className="flex items-center gap-3">
+            {userName && <span className="text-sm text-white/80">{userName}</span>}
             <button
               onClick={onSignOut}
-              className="text-xs text-white/40 hover:text-white transition-colors"
+              className="rounded-full px-3 py-1.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
             >
               Sign out
             </button>

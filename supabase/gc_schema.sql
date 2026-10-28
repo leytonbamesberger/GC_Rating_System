@@ -45,19 +45,32 @@ create table if not exists gc_ratings (
   pm_id uuid not null references gc_project_managers(id),
   job_number text not null,
   job_name text,
-  payment_timeline integer not null check (payment_timeline between 1 and 5),
-  co_approval_timeline integer not null check (co_approval_timeline between 1 and 5),
-  co_negotiations integer not null check (co_negotiations between 1 and 5),
-  contract_terms integer not null check (contract_terms between 1 and 5),
-  conflict_mitigation integer not null check (conflict_mitigation between 1 and 5),
-  schedule_trade_stacking integer not null check (schedule_trade_stacking between 1 and 5),
-  schedule_accuracy integer not null check (schedule_accuracy between 1 and 5),
-  site_control integer not null check (site_control between 1 and 5),
-  relationship integer not null check (relationship between 1 and 5),
+  payment_timeline integer check (payment_timeline between 1 and 5),
+  co_approval_timeline integer check (co_approval_timeline between 1 and 5),
+  co_negotiations integer check (co_negotiations between 1 and 5),
+  contract_terms integer check (contract_terms between 1 and 5),
+  conflict_mitigation integer check (conflict_mitigation between 1 and 5),
+  schedule_trade_stacking integer check (schedule_trade_stacking between 1 and 5),
+  schedule_accuracy integer check (schedule_accuracy between 1 and 5),
+  site_control integer check (site_control between 1 and 5),
+  relationship integer check (relationship between 1 and 5),
   -- Nullable so reports from before Safety existed are left out of averages instead of counted as zero.
   safety integer check (safety is null or safety between 1 and 5),
   created_at timestamptz default now()
 );
+
+-- Every score is nullable: NULL means "N/A" (the question did not apply), and averages skip it.
+-- create table above does not change an existing table, so this loosens one that already exists.
+alter table gc_ratings
+  alter column payment_timeline drop not null,
+  alter column co_approval_timeline drop not null,
+  alter column co_negotiations drop not null,
+  alter column contract_terms drop not null,
+  alter column conflict_mitigation drop not null,
+  alter column schedule_trade_stacking drop not null,
+  alter column schedule_accuracy drop not null,
+  alter column site_control drop not null,
+  alter column relationship drop not null;
 
 -- One person per email, so gc_link_pm can match an email to exactly one row.
 create unique index if not exists gc_project_managers_email_key
