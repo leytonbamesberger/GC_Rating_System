@@ -291,7 +291,7 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
       try {
         const text = await file.text();
         const { data: gcData, error: gcErr } = await supabase
-          .from('general_contractors')
+          .from('gc_contractors')
           .select('*');
         if (gcErr) throw new Error('Failed to load GC list from database.');
         const gcs = (gcData ?? []) as GeneralContractor[];
@@ -333,7 +333,7 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
     try {
       for (const r of toUpdate) {
         const { error } = await supabase
-          .from('general_contractors')
+          .from('gc_contractors')
           .update({
             hit_rate_dollar: r.hitRateDollar,
             total_bids_submitted_raw: r.totalBidsSubmitted,
@@ -357,7 +357,7 @@ export default function CSVUploadScreen({ onBack, onComplete }: Props) {
     try {
       for (const r of toUpdate) {
         const { error } = await supabase
-          .from('general_contractors')
+          .from('gc_contractors')
           .update({ est_relationship: r.score })
           .eq('id', r.gcId!);
         if (error) throw error;

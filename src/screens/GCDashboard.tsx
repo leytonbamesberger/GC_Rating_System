@@ -278,8 +278,8 @@ export default function GCDashboard({ onBack, backLabel = '← Back', onSelectGC
     setLoading(true);
     setError('');
     const [gcRes, ratingsRes, loadedThresholds] = await Promise.all([
-      supabase.from('general_contractors').select('*'),
-      supabase.from('ratings').select('*').order('created_at', { ascending: false }),
+      supabase.from('gc_contractors').select('*'),
+      supabase.from('gc_ratings').select('*').order('created_at', { ascending: false }),
       fetchThresholds(),
     ]);
     if (gcRes.error || ratingsRes.error) {

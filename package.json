@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.30.0",
+    "@azure/msal-react": "^2.2.0",
     "@supabase/supabase-js": "^2.57.4",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

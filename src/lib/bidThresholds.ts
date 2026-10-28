@@ -25,7 +25,7 @@ export function totalBidsToScore(dollars: number, t: BidThresholds): number {
 
 export async function fetchThresholds(): Promise<BidThresholds> {
   const { data } = await supabase
-    .from('bid_thresholds')
+    .from('gc_bid_thresholds')
     .select('tier_2_min, tier_3_min, tier_4_min, tier_5_min')
     .eq('id', 1)
     .maybeSingle();
@@ -34,6 +34,6 @@ export async function fetchThresholds(): Promise<BidThresholds> {
 
 export async function saveThresholds(t: BidThresholds): Promise<void> {
   await supabase
-    .from('bid_thresholds')
+    .from('gc_bid_thresholds')
     .upsert({ id: 1, ...t, updated_at: new Date().toISOString() });
 }

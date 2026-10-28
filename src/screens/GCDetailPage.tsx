@@ -57,9 +57,9 @@ export default function GCDetailPage({ gcId, onBack, onGCUpdated }: Props) {
     setLoading(true);
     setError('');
     const [gcRes, ratingsRes, pmsRes] = await Promise.all([
-      supabase.from('general_contractors').select('*').eq('id', gcId).maybeSingle(),
-      supabase.from('ratings').select('*').eq('gc_id', gcId).order('created_at', { ascending: false }),
-      supabase.from('project_managers').select('*'),
+      supabase.from('gc_contractors').select('*').eq('id', gcId).maybeSingle(),
+      supabase.from('gc_ratings').select('*').eq('gc_id', gcId).order('created_at', { ascending: false }),
+      supabase.from('gc_project_managers').select('*'),
     ]);
 
     if (gcRes.error || ratingsRes.error || pmsRes.error) {

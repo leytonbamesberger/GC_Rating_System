@@ -162,7 +162,7 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
     }
     setGcLoading(true);
     const { data } = await supabase
-      .from('general_contractors')
+      .from('gc_contractors')
       .select('*')
       .order('name');
     setGcLoading(false);
@@ -208,7 +208,7 @@ export default function AddReportFlow({ pm, onComplete, onBack, onHome }: Props)
   async function handleSubmit() {
     setSubmitting(true);
     setError('');
-    const { error } = await supabase.from('ratings').insert({
+    const { error } = await supabase.from('gc_ratings').insert({
       gc_id: form.gc_id,
       pm_id: pm.id,
       job_number: form.job_number,

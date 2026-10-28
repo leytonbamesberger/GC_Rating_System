@@ -45,7 +45,7 @@ export default function AddGCModal({ onClose, onSaved, initialName = '', editGC 
       };
 
       const { data, error: updateError } = await supabase
-        .from('general_contractors')
+        .from('gc_contractors')
         .update(updatePayload)
         .eq('id', editGC.id)
         .select()
@@ -65,7 +65,7 @@ export default function AddGCModal({ onClose, onSaved, initialName = '', editGC 
       if (data) onSaved(data as GeneralContractor);
     } else {
       const { data, error: insertError } = await supabase
-        .from('general_contractors')
+        .from('gc_contractors')
         .insert({
           name: trimmedName,
           aliases: aliases.trim() || null,
